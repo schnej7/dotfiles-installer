@@ -6,11 +6,10 @@ import type { HookDraft } from "./lib/manifest";
 import type { Platform } from "./types/manifest";
 import StepIndicator from "./components/StepIndicator";
 import RepoInput from "./components/RepoInput";
-import Analysis from "./components/Analysis";
 import ReviewEditor from "./components/ReviewEditor";
 import ManifestExport from "./components/ManifestExport";
 
-export type Step = 1 | 2 | 3 | 4;
+export type Step = 1 | 2 | 3;
 
 export interface WizardState {
   owner: string;
@@ -21,6 +20,7 @@ export interface WizardState {
   dependencies: DetectedDependency[];
   hooks: HookDraft[];
   platforms: Platform[];
+  githubToken: string;
 }
 
 const INITIAL_STATE: WizardState = {
@@ -32,6 +32,7 @@ const INITIAL_STATE: WizardState = {
   dependencies: [],
   hooks: [],
   platforms: ["macos", "linux"],
+  githubToken: "",
 };
 
 export default function App() {
@@ -91,12 +92,9 @@ export default function App() {
               <RepoInput state={state} update={updateState} goTo={goTo} />
             )}
             {step === 2 && (
-              <Analysis state={state} update={updateState} goTo={goTo} />
-            )}
-            {step === 3 && (
               <ReviewEditor state={state} update={updateState} goTo={goTo} />
             )}
-            {step === 4 && (
+            {step === 3 && (
               <ManifestExport state={state} update={updateState} goTo={goTo} />
             )}
           </div>

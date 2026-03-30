@@ -15,6 +15,8 @@ export default function RepoInput({ state, update, goTo }: Props) {
       ? `https://github.com/${state.owner}/${state.repo}`
       : "",
   );
+  const [token, setToken] = useState(state.githubToken);
+  const [showToken, setShowToken] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,12 +34,13 @@ export default function RepoInput({ state, update, goTo }: Props) {
 
     setLoading(true);
     try {
-      const result = await fetchRepo(parsed.owner, parsed.repo);
+      const result = await fetchRepo(parsed.owner, parsed.repo, token || undefined);
       update({
         owner: parsed.owner,
         repo: parsed.repo,
         repoMeta: result.repo,
         rateLimit: result.rateLimit,
+        githubToken: token,
       });
       goTo(2);
     } catch (err) {
@@ -84,6 +87,53 @@ export default function RepoInput({ state, update, goTo }: Props) {
           {loading && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-brand-400" />
+            </div>
+          )}
+        </div>
+
+        {/* GitHub token (optional, for PR creation) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowToken(!showToken)}
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
+          >
+            <svg
+              className={cn("h-3 w-3 transition-transform", showToken && "rotate-90")}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {showToken ? "Hide" : "Add"} GitHub token (optional, enables opening a PR)
+          </button>
+          {showToken && (
+            <div className="mt-2 space-y-2">
+              <input
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="ghp_..."
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+                disabled={loading}
+              />
+              <p className="text-xs text-zinc-600">
+                A{" "}
+                <a
+                  href="https://github.com/settings/tokens/new?scopes=repo&description=dotfiles-installer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-400 hover:text-brand-300 underline"
+                >
+                  personal access token
+                </a>{" "}
+                with <code className="text-zinc-500">repo</code> scope.
+                Used only in your browser to create a PR. Never stored or sent to any server.
+              </p>
             </div>
           )}
         </div>
@@ -139,8 +189,8 @@ export default function RepoInput({ state, update, goTo }: Props) {
               1
             </span>
             <span>
-              Paste your repository URL and we scan its structure using the
-              GitHub API.
+              Paste your repository URL. We scan its structure and detect
+              dotfiles, config directories, and dependencies.
             </span>
           </li>
           <li className="flex gap-3">
@@ -148,8 +198,8 @@ export default function RepoInput({ state, update, goTo }: Props) {
               2
             </span>
             <span>
-              Review detected dotfiles, config directories, and dependencies.
-              Edit the install plan.
+              Review and edit the install plan — toggle files, adjust
+              target paths, approve packages, add shell commands.
             </span>
           </li>
           <li className="flex gap-3">
@@ -157,18 +207,8 @@ export default function RepoInput({ state, update, goTo }: Props) {
               3
             </span>
             <span>
-              Download the generated manifest and commit it to your repo root as{" "}
-              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-brand-400">
-                .dotfiles-manifest.json
-              </code>
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-300">
-              4
-            </span>
-            <span>
-              Anyone can install with a single command:{" "}
+              Open a PR to add the manifest to your repo. Once merged, anyone
+              can install with{" "}
               <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-brand-400">
                 curl ... | bash -s -- user/repo
               </code>

@@ -3,9 +3,8 @@ import { cn } from "../lib/utils";
 
 const STEPS: { num: Step; label: string }[] = [
   { num: 1, label: "Repository" },
-  { num: 2, label: "Analyze" },
-  { num: 3, label: "Review" },
-  { num: 4, label: "Export" },
+  { num: 2, label: "Review" },
+  { num: 3, label: "Export" },
 ];
 
 export default function StepIndicator({ current }: { current: Step }) {
