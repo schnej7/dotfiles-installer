@@ -1,0 +1,190 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dotfiles-installer.dev/schema/manifest/v1",
+  "title": "Dotfiles Installer Manifest",
+  "description": "Machine-readable installation contract for a dotfiles repository.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedBy", "generatedAt", "repository", "platforms", "actions"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Manifest schema version (semver)."
+    },
+    "generatedBy": {
+      "type": "string",
+      "description": "Tool and version that generated this manifest.",
+      "examples": ["dotfiles-installer@1.0.0"]
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of manifest generation."
+    },
+    "repository": {
+      "type": "object",
+      "required": ["url"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "HTTPS URL of the GitHub repository."
+        },
+        "ref": {
+          "type": "string",
+          "default": "main",
+          "description": "Git ref (branch or tag) to install from."
+        }
+      }
+    },
+    "platforms": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["macos", "linux"]
+      },
+      "description": "Operating systems this manifest targets."
+    },
+    "actions": {
+      "type": "array",
+      "description": "Ordered list of install actions to execute.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/definitions/symlinkAction" },
+          { "$ref": "#/definitions/copyAction" },
+          { "$ref": "#/definitions/mkdirAction" },
+          { "$ref": "#/definitions/hookAction" }
+        ]
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Package dependencies required or suggested by this repository.",
+      "items": { "$ref": "#/definitions/dependency" }
+    }
+  },
+  "definitions": {
+    "platform": {
+      "type": "string",
+      "enum": ["macos", "linux"],
+      "description": "Restrict this item to a specific OS."
+    },
+    "symlinkAction": {
+      "type": "object",
+      "required": ["type", "source", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "symlink" },
+        "source": {
+          "type": "string",
+          "description": "Path relative to the repository root."
+        },
+        "target": {
+          "type": "string",
+          "description": "Absolute target path (~ is expanded at install time)."
+        },
+        "platform": { "$ref": "#/definitions/platform" },
+        "overwrite": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to overwrite an existing file at the target path."
+        }
+      }
+    },
+    "copyAction": {
+      "type": "object",
+      "required": ["type", "source", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "copy" },
+        "source": {
+          "type": "string",
+          "description": "Path relative to the repository root."
+        },
+        "target": {
+          "type": "string",
+          "description": "Absolute target path (~ is expanded at install time)."
+        },
+        "platform": { "$ref": "#/definitions/platform" },
+        "overwrite": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to overwrite an existing file at the target path."
+        }
+      }
+    },
+    "mkdirAction": {
+      "type": "object",
+      "required": ["type", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "mkdir" },
+        "target": {
+          "type": "string",
+          "description": "Absolute directory path to create (~ is expanded at install time)."
+        },
+        "platform": { "$ref": "#/definitions/platform" }
+      }
+    },
+    "hookAction": {
+      "type": "object",
+      "required": ["type", "name", "command", "when"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "hook" },
+        "name": {
+          "type": "string",
+          "description": "Human-readable label for this hook."
+        },
+        "command": {
+          "type": "string",
+          "description": "Shell command to execute."
+        },
+        "when": {
+          "type": "string",
+          "enum": ["pre", "post"],
+          "description": "Whether to run before or after the main actions."
+        },
+        "platform": { "$ref": "#/definitions/platform" }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "required": ["name", "confidence", "install"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable package name."
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "How confident the detection is."
+        },
+        "evidence": {
+          "type": "string",
+          "description": "Why this dependency was detected."
+        },
+        "install": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "brew": {
+              "type": "string",
+              "description": "Homebrew formula or cask name."
+            },
+            "apt": {
+              "type": "string",
+              "description": "APT package name."
+            }
+          }
+        }
+      }
+    }
+  }
+}
