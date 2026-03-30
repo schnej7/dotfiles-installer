@@ -62,8 +62,6 @@ export function buildManifest(options: {
     .filter((d) => d.enabled)
     .map((d) => ({
       name: d.name,
-      confidence: d.confidence,
-      evidence: d.evidence,
       install: d.install,
     }));
 

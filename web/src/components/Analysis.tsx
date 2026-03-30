@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Step, WizardState } from "../App";
 import { fetchTree, fetchFileContent } from "../lib/github";
-import { analyzeTree, getShellFiles, CATEGORY_LABELS, type ProposedAction, type FileCategory } from "../lib/analyzer";
+import { analyzeTree, getShellFiles, parseSourceDirectives, matchSourceHints, CATEGORY_LABELS, type ProposedAction, type FileCategory } from "../lib/analyzer";
 import { detectDependencies } from "../lib/dependency-detector";
 import { cn } from "../lib/utils";
 
@@ -39,10 +39,9 @@ export default function Analysis({ state, update, goTo }: Props) {
       update({ rateLimit });
 
       setPhase("files");
-      setProgress(`Found ${tree.tree.length} entries. Analyzing structure...`);
-      const proposedActions = analyzeTree(tree.tree);
-      setActions(proposedActions);
+      setProgress(`Found ${tree.tree.length} entries. Scanning shell files...`);
 
+      // Fetch shell files to parse source directives and detect dependencies
       const shellFiles = getShellFiles(tree.tree);
       const hasBrEwfile = tree.tree.some(
         (e) => e.type === "blob" && e.path === "Brewfile",
@@ -50,11 +49,7 @@ export default function Analysis({ state, update, goTo }: Props) {
       const filesToFetch = [...shellFiles];
       if (hasBrEwfile) filesToFetch.push("Brewfile");
 
-      setProgress(
-        `Scanning ${filesToFetch.length} file(s) for dependencies...`,
-      );
       const fileContents = new Map<string, string>();
-
       const BATCH_SIZE = 5;
       for (let i = 0; i < filesToFetch.length; i += BATCH_SIZE) {
         const batch = filesToFetch.slice(i, i + BATCH_SIZE);
@@ -73,6 +68,21 @@ export default function Analysis({ state, update, goTo }: Props) {
           `Scanned ${Math.min(i + BATCH_SIZE, filesToFetch.length)}/${filesToFetch.length} files...`,
         );
       }
+
+      // Parse source directives to discover target paths
+      setProgress("Analyzing source/include directives...");
+      const allHints = [];
+      for (const [filePath, content] of fileContents) {
+        allHints.push(...parseSourceDirectives(content, filePath));
+      }
+      const repoFilePaths = tree.tree
+        .filter((e) => e.type === "blob")
+        .map((e) => e.path);
+      const sourceHintMap = matchSourceHints(allHints, repoFilePaths);
+
+      setProgress("Building install plan...");
+      const proposedActions = analyzeTree(tree.tree, sourceHintMap);
+      setActions(proposedActions);
 
       setPhase("deps");
       setProgress("Detecting dependencies...");

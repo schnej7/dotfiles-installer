@@ -13,16 +13,16 @@ interface Props {
   goTo: (s: Step) => void;
 }
 
-type Tab = "actions" | "dependencies" | "hooks" | "platforms";
+type Tab = "files" | "dependencies" | "commands" | "platforms";
 
 export default function ReviewEditor({ state, update, goTo }: Props) {
-  const [tab, setTab] = useState<Tab>("actions");
+  const [tab, setTab] = useState<Tab>("files");
   const [editingAction, setEditingAction] = useState<string | null>(null);
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: "actions", label: "Actions", count: state.actions.filter((a) => a.enabled).length },
-    { id: "dependencies", label: "Dependencies", count: state.dependencies.filter((d) => d.enabled).length },
-    { id: "hooks", label: "Hooks", count: state.hooks.filter((h) => h.enabled).length },
+    { id: "files", label: "File Operations", count: state.actions.filter((a) => a.enabled).length },
+    { id: "dependencies", label: "Packages", count: state.dependencies.filter((d) => d.enabled).length },
+    { id: "commands", label: "Shell Commands", count: state.hooks.filter((h) => h.enabled).length },
     { id: "platforms", label: "Platforms" },
   ];
 
@@ -97,8 +97,7 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
         Review Install Plan
       </h2>
       <p className="text-zinc-400 mb-6">
-        Edit actions, approve dependencies, add hooks, and configure platforms
-        before generating the manifest.
+        Review and edit the install plan before generating the manifest.
       </p>
 
       {/* Tab bar */}
@@ -124,9 +123,13 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
         ))}
       </div>
 
-      {/* Actions tab */}
-      {tab === "actions" && (
+      {/* File Operations tab */}
+      {tab === "files" && (
         <div className="space-y-6">
+          <p className="text-sm text-zinc-500 -mt-2 mb-2">
+            Symlinks and copies that map repository files to paths on your system.
+            Each row creates one symlink or copy during installation.
+          </p>
           {Object.entries(grouped).map(([cat, items]) => (
             <div key={cat} className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900">
@@ -241,8 +244,14 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
         </div>
       )}
 
-      {/* Dependencies tab */}
+      {/* Packages tab */}
       {tab === "dependencies" && (
+        <div>
+          <p className="text-sm text-zinc-500 -mt-2 mb-4">
+            Packages detected from your shell configs and Brewfile.
+            Confidence and evidence are shown here for review but are not included in the manifest.
+            Only checked items will be listed in the manifest for installation.
+          </p>
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
           {state.dependencies.length === 0 ? (
             <p className="px-4 py-8 text-center text-zinc-500">
@@ -309,11 +318,17 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
             </div>
           )}
         </div>
+        </div>
       )}
 
-      {/* Hooks tab */}
-      {tab === "hooks" && (
+      {/* Shell Commands tab */}
+      {tab === "commands" && (
         <div className="space-y-4">
+          <p className="text-sm text-zinc-500 -mt-2 mb-2">
+            Arbitrary shell commands that run before or after the file operations above.
+            Use these for things like installing Vim plugins, sourcing a config, or running
+            a setup script. These appear in the manifest and are shown to users before install.
+          </p>
           {state.hooks.map((hook) => (
             <div
               key={hook.id}
@@ -334,7 +349,7 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
                   onChange={(e) =>
                     updateHook(hook.id, { name: e.target.value })
                   }
-                  placeholder="Hook name (e.g. Install Vim plugins)"
+                  placeholder="Label (e.g. Install Vim plugins)"
                   className="flex-1 rounded border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:ring-1 focus:ring-brand-500"
                 />
                 <select
@@ -377,7 +392,7 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
-            Add Hook
+            Add Shell Command
           </button>
         </div>
       )}

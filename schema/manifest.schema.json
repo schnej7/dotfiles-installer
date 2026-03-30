@@ -154,21 +154,12 @@
     },
     "dependency": {
       "type": "object",
-      "required": ["name", "confidence", "install"],
+      "required": ["name", "install"],
       "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
-          "description": "Human-readable package name."
-        },
-        "confidence": {
-          "type": "string",
-          "enum": ["high", "medium", "low"],
-          "description": "How confident the detection is."
-        },
-        "evidence": {
-          "type": "string",
-          "description": "Why this dependency was detected."
+          "description": "Package or command name."
         },
         "install": {
           "type": "object",

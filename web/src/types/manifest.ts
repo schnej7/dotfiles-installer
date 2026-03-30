@@ -42,8 +42,6 @@ export interface DependencyInstall {
 
 export interface Dependency {
   name: string;
-  confidence: Confidence;
-  evidence?: string;
   install: DependencyInstall;
 }
 
@@ -69,6 +67,8 @@ export interface RepoActionDraft extends Omit<Action, "type"> {
 }
 
 export interface DependencyDraft extends Dependency {
+  confidence: Confidence;
+  evidence?: string;
   enabled: boolean;
   id: string;
 }

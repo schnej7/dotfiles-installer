@@ -319,12 +319,11 @@ preview_actions() {
     printf "\n\n"
     local d=0
     while [ "$d" -lt "$dep_count" ]; do
-      local dname dconf dpkg
+      local dname dpkg
       dname="$(json_dep_field "$manifest" "$d" "name")"
-      dconf="$(json_dep_field "$manifest" "$d" "confidence")"
       dpkg="$(json_dep_install "$manifest" "$d" "$PKG_MANAGER")"
       if [ -n "$dpkg" ]; then
-        printf "  %s  %s ($PKG_MANAGER: %s, confidence: %s)\n" "$(cyan "pkg")" "$dname" "$dpkg" "$dconf"
+        printf "  %s  %s (%s: %s)\n" "$(cyan "pkg")" "$dname" "$PKG_MANAGER" "$dpkg"
       fi
       d=$((d + 1))
     done
