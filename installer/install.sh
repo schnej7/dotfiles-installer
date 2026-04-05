@@ -671,6 +671,13 @@ main() {
     info "Backups saved to $(cyan "$BACKUP_DIR")"
   fi
   printf "\n"
+
+  # Source bashrc to activate the new configuration
+  if [ -f "$HOME/.bashrc" ]; then
+    info "Sourcing ~/.bashrc..."
+    # shellcheck disable=SC1091
+    source "$HOME/.bashrc" 2>/dev/null && ok "Shell configuration loaded" || warn "Could not source ~/.bashrc — restart your terminal to apply changes"
+  fi
 }
 
 main "$@"
