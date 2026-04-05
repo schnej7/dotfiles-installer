@@ -605,7 +605,7 @@ main() {
             if command -v "$dname" >/dev/null 2>&1; then
               printf "  %s  %s\n" "$(green "✔")" "$dname"
             else
-              printf "  %s  %s (%s: %s)\n" "$(red "✖")" "$dname" "$PKG_MANAGER" "$dpkg"
+              printf "  %s\n" "$(red "✖  $dname ($PKG_MANAGER: $dpkg)")"
               missing_pkgs="$missing_pkgs $dpkg"
             fi
           fi
