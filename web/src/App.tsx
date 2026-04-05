@@ -77,7 +77,7 @@ export default function App() {
             </h1>
           </div>
           <a
-            href="https://github.com/jeromesch/dotfiles-installer"
+            href="https://github.com/schnej7/dotfiles-installer"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"

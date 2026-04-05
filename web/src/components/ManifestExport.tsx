@@ -49,16 +49,40 @@ export default function ManifestExport({ state, update, goTo }: Props) {
     [state.owner, state.repo],
   );
 
+  async function copyToClipboard(text: string): Promise<boolean> {
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch { /* falls through to fallback */ }
+    }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
   async function copyManifest() {
-    await navigator.clipboard.writeText(json);
-    setCopiedManifest(true);
-    setTimeout(() => setCopiedManifest(false), 2000);
+    if (await copyToClipboard(json)) {
+      setCopiedManifest(true);
+      setTimeout(() => setCopiedManifest(false), 2000);
+    }
   }
 
   async function copyCommand() {
-    await navigator.clipboard.writeText(installCmd);
-    setCopiedCommand(true);
-    setTimeout(() => setCopiedCommand(false), 2000);
+    if (await copyToClipboard(installCmd)) {
+      setCopiedCommand(true);
+      setTimeout(() => setCopiedCommand(false), 2000);
+    }
   }
 
   function download() {

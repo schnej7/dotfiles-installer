@@ -9,7 +9,7 @@ The easiest way to make a dotfiles repository installable. A browser-based manif
 **For consumers:** install any manifest-enabled repo with a single command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jeromesch/dotfiles-installer/main/installer/install.sh | bash -s -- user/dotfiles
+curl -fsSL https://raw.githubusercontent.com/schnej7/dotfiles-installer/main/installer/install.sh | bash -s -- user/dotfiles
 ```
 
 ## Architecture

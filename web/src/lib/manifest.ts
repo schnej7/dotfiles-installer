@@ -89,7 +89,7 @@ export function serializeManifest(manifest: Manifest): string {
 }
 
 export function generateInstallCommand(repoSlug: string): string {
-  return `curl -fsSL https://raw.githubusercontent.com/jeromesch/dotfiles-installer/main/installer/install.sh | bash -s -- ${repoSlug}`;
+  return `curl -fsSL https://raw.githubusercontent.com/schnej7/dotfiles-installer/main/installer/install.sh | bash -s -- ${repoSlug}`;
 }
 
 function stripUndefined(obj: unknown): unknown {
