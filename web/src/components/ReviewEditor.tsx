@@ -12,6 +12,7 @@ import { fetchTree, fetchFileContent } from "../lib/github";
 import { detectDependencies, KNOWN_TOOLS } from "../lib/dependency-detector";
 import type { DetectedDependency, ToolDefinition } from "../lib/dependency-detector";
 import type { HookDraft } from "../lib/manifest";
+import { parseManifestToState } from "../lib/manifest";
 import type { Platform } from "../types/manifest";
 import { cn } from "../lib/utils";
 
@@ -58,6 +59,19 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
       const { tree, rateLimit } = await fetchTree(owner, repo, ref, token);
       update({ rateLimit });
 
+      // Check for existing manifest
+      const hasManifest = tree.tree.some(
+        (e) => e.type === "blob" && e.path === ".dotfiles-manifest.json",
+      );
+      let existing: ReturnType<typeof parseManifestToState> = null;
+      if (hasManifest) {
+        setProgress("Found existing manifest, loading...");
+        try {
+          const manifestJson = await fetchFileContent(owner, repo, ref, ".dotfiles-manifest.json", token);
+          existing = parseManifestToState(manifestJson);
+        } catch { /* continue with fresh analysis */ }
+      }
+
       setPhase("files");
       setProgress(`Found ${tree.tree.length} entries. Scanning shell files...`);
 
@@ -99,13 +113,38 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
       const sourceHintMap = matchSourceHints(allHints, repoFilePaths);
 
       setProgress("Building install plan...");
-      const proposedActions = analyzeTree(tree.tree, sourceHintMap);
+      const detectedActions = analyzeTree(tree.tree, sourceHintMap);
 
       setPhase("deps");
       setProgress("Detecting dependencies...");
-      const deps = detectDependencies(fileContents);
+      const detectedDeps = detectDependencies(fileContents);
 
-      update({ actions: proposedActions, dependencies: deps });
+      // Merge: existing manifest takes priority, newly detected items fill gaps
+      if (existing) {
+        setProgress("Merging with existing manifest...");
+        const manifestSources = new Set(existing.actions.map((a) => a.source));
+        const newActions = detectedActions.filter(
+          (a) => !manifestSources.has(a.source),
+        );
+        // New detections start disabled so they don't silently change the config
+        for (const a of newActions) a.enabled = false;
+
+        const manifestDepNames = new Set(existing.dependencies.map((d) => d.name));
+        const newDeps = detectedDeps.filter(
+          (d) => !manifestDepNames.has(d.name),
+        );
+        for (const d of newDeps) d.enabled = false;
+
+        update({
+          actions: [...existing.actions, ...newActions],
+          dependencies: [...existing.dependencies, ...newDeps],
+          hooks: existing.hooks,
+          platforms: existing.platforms,
+        });
+      } else {
+        update({ actions: detectedActions, dependencies: detectedDeps });
+      }
+
       setPhase("done");
     } catch (err) {
       setPhase("error");

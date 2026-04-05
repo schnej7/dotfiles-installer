@@ -5,10 +5,89 @@ import type {
   Platform,
   HookAction,
 } from "../types/manifest";
-import type { ProposedAction } from "./analyzer";
+import type { ProposedAction, FileCategory } from "./analyzer";
 import type { DetectedDependency } from "./dependency-detector";
 
 const TOOL_VERSION = "dotfiles-installer@1.0.0";
+
+function inferCategory(target: string): FileCategory {
+  const t = target.toLowerCase();
+  if (t.startsWith("~/.config/")) return "xdg-config";
+  if (/\/\.?(bash|zsh|profile|inputrc|aliases|functions|exports|fish)/.test(t)) return "shell-config";
+  if (/\/\.?(vim|gvim|nvim|editor)/.test(t)) return "editor-config";
+  if (/\/\.?(tmux|screen|wezterm|alacritty|kitty)/.test(t)) return "terminal-config";
+  if (/\/\.?git(config|ignore|attributes)/.test(t)) return "git-config";
+  if (/\/\.local\/(bin|scripts)\//.test(t)) return "script";
+  return "other-dotfile";
+}
+
+export interface LoadedManifestState {
+  actions: ProposedAction[];
+  dependencies: DetectedDependency[];
+  hooks: HookDraft[];
+  platforms: Platform[];
+}
+
+export function parseManifestToState(jsonStr: string): LoadedManifestState | null {
+  try {
+    const manifest: Manifest = JSON.parse(jsonStr);
+    if (manifest.schemaVersion !== "1.0.0") return null;
+
+    let actionId = 0;
+    let depId = 0;
+    let hookId = 0;
+
+    const actions: ProposedAction[] = [];
+    const hooks: HookDraft[] = [];
+
+    for (const action of manifest.actions ?? []) {
+      if (action.type === "hook") {
+        const h = action as HookAction;
+        hooks.push({
+          id: `mhook-${++hookId}`,
+          name: h.name,
+          command: h.command,
+          when: h.when,
+          platform: h.platform,
+          enabled: true,
+        });
+      } else {
+        const source = "source" in action ? (action as { source: string }).source : "";
+        const target = action.target;
+        actions.push({
+          id: `mact-${++actionId}`,
+          type: action.type,
+          source,
+          target,
+          platform: action.platform,
+          overwrite: "overwrite" in action ? !!(action as { overwrite?: boolean }).overwrite : false,
+          enabled: true,
+          category: inferCategory(target),
+        });
+      }
+    }
+
+    const dependencies: DetectedDependency[] = (manifest.dependencies ?? []).map(
+      (d: Dependency) => ({
+        id: `mdep-${++depId}`,
+        name: d.name,
+        confidence: "high" as const,
+        evidence: "From existing manifest",
+        install: d.install,
+        enabled: true,
+      }),
+    );
+
+    return {
+      actions,
+      dependencies,
+      hooks,
+      platforms: manifest.platforms ?? ["macos", "linux"],
+    };
+  } catch {
+    return null;
+  }
+}
 
 export interface HookDraft {
   id: string;

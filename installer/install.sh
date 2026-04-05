@@ -613,8 +613,15 @@ main() {
         done
         if [ -n "$missing_pkgs" ]; then
           printf "\n"
-          warn "No sudo access — install missing packages manually:"
-          printf "\n  %s\n" "$(bold "sudo apt install$missing_pkgs")"
+          printf "  %s\n" "$(red "──────────────────────────────────────────────────────")"
+          printf "  %s\n" "$(red "ACTION REQUIRED:") Missing packages could not be installed"
+          printf "  %s\n" "$(red "──────────────────────────────────────────────────────")"
+          printf "\n"
+          printf "  Your user does not have sudo privileges. To complete\n"
+          printf "  setup, run the following command as root or ask your\n"
+          printf "  system administrator to install these packages:\n"
+          printf "\n  %s\n\n" "$(bold "sudo apt install$missing_pkgs")"
+          printf "  %s\n" "$(red "──────────────────────────────────────────────────────")"
         else
           printf "\n"
           ok "All dependencies are already installed!"
