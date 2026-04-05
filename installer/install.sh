@@ -617,9 +617,9 @@ main() {
           dpkg="$(json_dep_install "$manifest" "$d" "$PKG_MANAGER")"
           if [ -n "$dpkg" ]; then
             if command -v "$dname" >/dev/null 2>&1; then
-              printf "  %s  %s\n" "$(green "✔")" "$dname"
+              printf "  %s  %s\n" "$(green "[ok]")" "$dname"
             else
-              printf "  %s\n" "$(red "✖  $dname ($PKG_MANAGER: $dpkg)")"
+              printf "  %s\n" "$(red "[!!]  $dname ($PKG_MANAGER: $dpkg)")"
               missing_pkgs="$missing_pkgs $dpkg"
             fi
           fi
