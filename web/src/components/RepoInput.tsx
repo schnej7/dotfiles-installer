@@ -16,7 +16,6 @@ export default function RepoInput({ state, update, goTo }: Props) {
       : "",
   );
   const [token, setToken] = useState(state.githubToken);
-  const [showToken, setShowToken] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,50 +91,33 @@ export default function RepoInput({ state, update, goTo }: Props) {
         </div>
 
         {/* GitHub token (optional, for PR creation) */}
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowToken(!showToken)}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
-          >
-            <svg
-              className={cn("h-3 w-3 transition-transform", showToken && "rotate-90")}
-              viewBox="0 0 20 20"
-              fill="currentColor"
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-zinc-400">
+              GitHub token
+              <span className="ml-1.5 text-xs text-zinc-600">(optional — enables opening a PR)</span>
+            </label>
+            <a
+              href="https://github.com/settings/tokens/new?scopes=repo&description=dotfiles-installer"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-brand-400 hover:text-brand-300 underline"
             >
-              <path
-                fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {showToken ? "Hide" : "Add"} GitHub token (optional, enables opening a PR)
-          </button>
-          {showToken && (
-            <div className="mt-2 space-y-2">
-              <input
-                type="password"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="ghp_..."
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
-                disabled={loading}
-              />
-              <p className="text-xs text-zinc-600">
-                A{" "}
-                <a
-                  href="https://github.com/settings/tokens/new?scopes=repo&description=dotfiles-installer"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand-400 hover:text-brand-300 underline"
-                >
-                  personal access token
-                </a>{" "}
-                with <code className="text-zinc-500">repo</code> scope.
-                Used only in your browser to create a PR. Never stored or sent to any server.
-              </p>
-            </div>
-          )}
+              Generate token
+            </a>
+          </div>
+          <input
+            type="password"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="ghp_..."
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+            disabled={loading}
+          />
+          <p className="text-xs text-zinc-600">
+            Needs <code className="text-zinc-500">repo</code> scope.
+            Used only in your browser — never stored or sent to any server.
+          </p>
         </div>
 
         {error && (
