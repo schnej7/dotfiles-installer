@@ -24,6 +24,7 @@ export default function ManifestExport({ state, update, goTo }: Props) {
   const [prUrl, setPrUrl] = useState<string | null>(null);
   const [prError, setPrError] = useState<string | null>(null);
   const [tokenInput, setTokenInput] = useState(state.githubToken);
+  const [manifestExpanded, setManifestExpanded] = useState(false);
 
   const hasToken = !!tokenInput.trim();
 
@@ -142,6 +143,32 @@ export default function ManifestExport({ state, update, goTo }: Props) {
         </div>
       </div>
 
+      {/* Install command — at the top */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 mb-6">
+        <h3 className="font-medium text-zinc-200 mb-3">
+          One-line install command
+        </h3>
+        <p className="text-sm text-zinc-400 mb-4">
+          After the manifest is merged, anyone can install with:
+        </p>
+        <div className="relative">
+          <pre className="overflow-x-auto rounded-lg bg-zinc-950 border border-zinc-800 px-4 py-3 font-mono text-sm text-zinc-300">
+            {installCmd}
+          </pre>
+          <button
+            onClick={copyCommand}
+            className={cn(
+              "absolute right-2 top-2 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+              copiedCommand
+                ? "border-green-500/50 bg-green-500/10 text-green-400"
+                : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200",
+            )}
+          >
+            {copiedCommand ? "Copied!" : "Copy"}
+          </button>
+        </div>
+      </div>
+
       {/* Open PR section */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 mb-6">
         <h3 className="font-medium text-zinc-200 mb-3">
@@ -233,9 +260,13 @@ export default function ManifestExport({ state, update, goTo }: Props) {
         )}
       </div>
 
-      {/* Manifest preview */}
+      {/* Manifest preview — collapsible */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden mb-6">
-        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3 bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setManifestExpanded(!manifestExpanded)}
+          className="flex w-full items-center justify-between border-b border-zinc-800 px-4 py-3 bg-zinc-900 hover:bg-zinc-800/80 transition-colors"
+        >
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-zinc-300">
               .dotfiles-manifest.json
@@ -244,49 +275,40 @@ export default function ManifestExport({ state, update, goTo }: Props) {
               {(new TextEncoder().encode(json).length / 1024).toFixed(1)} KB
             </span>
           </div>
-          <button
-            onClick={copyManifest}
-            className={cn(
-              "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-              copiedManifest
-                ? "border-green-500/50 bg-green-500/10 text-green-400"
-                : "border-zinc-700 text-zinc-300 hover:bg-zinc-800",
-            )}
-          >
-            {copiedManifest ? "Copied!" : "Copy JSON"}
-          </button>
-        </div>
-        <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
-          <code>
-            <ManifestHighlight json={json} />
-          </code>
-        </pre>
-      </div>
-
-      {/* Install command */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 mb-8">
-        <h3 className="font-medium text-zinc-200 mb-3">
-          One-line install command
-        </h3>
-        <p className="text-sm text-zinc-400 mb-4">
-          After the manifest is merged, anyone can install with:
-        </p>
-        <div className="relative">
-          <pre className="overflow-x-auto rounded-lg bg-zinc-950 border border-zinc-800 px-4 py-3 font-mono text-sm text-zinc-300">
-            {installCmd}
+          <div className="flex items-center gap-2">
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                copyManifest();
+              }}
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                copiedManifest
+                  ? "border-green-500/50 bg-green-500/10 text-green-400"
+                  : "border-zinc-700 text-zinc-300 hover:bg-zinc-800",
+              )}
+            >
+              {copiedManifest ? "Copied!" : "Copy JSON"}
+            </span>
+            <svg
+              className={cn(
+                "h-4 w-4 text-zinc-400 transition-transform",
+                manifestExpanded && "rotate-180",
+              )}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </button>
+        {manifestExpanded && (
+          <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
+            <code>
+              <ManifestHighlight json={json} />
+            </code>
           </pre>
-          <button
-            onClick={copyCommand}
-            className={cn(
-              "absolute right-2 top-2 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-              copiedCommand
-                ? "border-green-500/50 bg-green-500/10 text-green-400"
-                : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200",
-            )}
-          >
-            {copiedCommand ? "Copied!" : "Copy"}
-          </button>
-        </div>
+        )}
       </div>
 
       {/* Navigation */}

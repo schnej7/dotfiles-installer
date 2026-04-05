@@ -575,16 +575,51 @@ main() {
     local dep_count
     dep_count="$(json_array_len "$manifest" ".dependencies" 2>/dev/null || echo 0)"
     if [ "$dep_count" -gt 0 ] && [ -n "$PKG_MANAGER" ]; then
-      printf "\n"
-      info "Installing dependencies..."
-      local d=0
-      while [ "$d" -lt "$dep_count" ]; do
-        local dname dpkg
-        dname="$(json_dep_field "$manifest" "$d" "name")"
-        dpkg="$(json_dep_install "$manifest" "$d" "$PKG_MANAGER")"
-        install_dependency "$dname" "$dpkg"
-        d=$((d + 1))
-      done
+      local has_sudo=false
+      if [ "$PKG_MANAGER" = "brew" ] || sudo -n true 2>/dev/null; then
+        has_sudo=true
+      fi
+
+      if [ "$has_sudo" = true ]; then
+        printf "\n"
+        info "Installing dependencies..."
+        local d=0
+        while [ "$d" -lt "$dep_count" ]; do
+          local dname dpkg
+          dname="$(json_dep_field "$manifest" "$d" "name")"
+          dpkg="$(json_dep_install "$manifest" "$d" "$PKG_MANAGER")"
+          install_dependency "$dname" "$dpkg"
+          d=$((d + 1))
+        done
+      else
+        printf "\n"
+        bold "  Dependency Status"
+        printf "\n\n"
+        local missing_pkgs=""
+        local d=0
+        while [ "$d" -lt "$dep_count" ]; do
+          local dname dpkg
+          dname="$(json_dep_field "$manifest" "$d" "name")"
+          dpkg="$(json_dep_install "$manifest" "$d" "$PKG_MANAGER")"
+          if [ -n "$dpkg" ]; then
+            if command -v "$dname" >/dev/null 2>&1; then
+              printf "  %s  %s\n" "$(green "✔")" "$dname"
+            else
+              printf "  %s  %s (%s: %s)\n" "$(red "✖")" "$dname" "$PKG_MANAGER" "$dpkg"
+              missing_pkgs="$missing_pkgs $dpkg"
+            fi
+          fi
+          d=$((d + 1))
+        done
+        if [ -n "$missing_pkgs" ]; then
+          printf "\n"
+          warn "No sudo access — install missing packages manually:"
+          printf "\n  %s\n" "$(bold "sudo apt install$missing_pkgs")"
+        else
+          printf "\n"
+          ok "All dependencies are already installed!"
+        fi
+      fi
     fi
   fi
 

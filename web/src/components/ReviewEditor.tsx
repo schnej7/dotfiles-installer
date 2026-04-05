@@ -9,8 +9,8 @@ import {
   CATEGORY_LABELS,
 } from "../lib/analyzer";
 import { fetchTree, fetchFileContent } from "../lib/github";
-import { detectDependencies } from "../lib/dependency-detector";
-import type { DetectedDependency } from "../lib/dependency-detector";
+import { detectDependencies, KNOWN_TOOLS } from "../lib/dependency-detector";
+import type { DetectedDependency, ToolDefinition } from "../lib/dependency-detector";
 import type { HookDraft } from "../lib/manifest";
 import type { Platform } from "../types/manifest";
 import { cn } from "../lib/utils";
@@ -27,6 +27,9 @@ type AnalysisPhase = "tree" | "files" | "deps" | "done" | "error";
 export default function ReviewEditor({ state, update, goTo }: Props) {
   const [tab, setTab] = useState<Tab>("files");
   const [editingAction, setEditingAction] = useState<string | null>(null);
+  const [pkgSearch, setPkgSearch] = useState("");
+  const [pkgDropdownOpen, setPkgDropdownOpen] = useState(false);
+  const pkgInputRef = useRef<HTMLInputElement>(null);
 
   // Analysis state
   const [phase, setPhase] = useState<AnalysisPhase>(
@@ -136,6 +139,32 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
       ),
     });
   }
+
+  function addDependency(tool: ToolDefinition) {
+    const already = state.dependencies.some((d) => d.name === tool.command);
+    if (already) return;
+    const dep: DetectedDependency = {
+      id: `dep-manual-${Date.now()}`,
+      name: tool.command,
+      confidence: "high",
+      evidence: "Manually added",
+      install: { brew: tool.brew, apt: tool.apt },
+      enabled: true,
+    };
+    update({ dependencies: [...state.dependencies, dep] });
+    setPkgSearch("");
+    setPkgDropdownOpen(false);
+  }
+
+  const pkgSuggestions = pkgSearch.trim().length > 0
+    ? KNOWN_TOOLS.filter(
+        (t) =>
+          !state.dependencies.some((d) => d.name === t.command) &&
+          (t.command.toLowerCase().includes(pkgSearch.toLowerCase()) ||
+           t.brew.toLowerCase().includes(pkgSearch.toLowerCase()) ||
+           (t.aliases ?? []).some((a) => a.toLowerCase().includes(pkgSearch.toLowerCase())))
+      ).slice(0, 8)
+    : [];
 
   function addHook() {
     const hook: HookDraft = {
@@ -428,6 +457,51 @@ export default function ReviewEditor({ state, update, goTo }: Props) {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add package typeahead */}
+              <div className="relative mt-4">
+                <input
+                  ref={pkgInputRef}
+                  type="text"
+                  value={pkgSearch}
+                  onChange={(e) => {
+                    setPkgSearch(e.target.value);
+                    setPkgDropdownOpen(true);
+                  }}
+                  onFocus={() => pkgSearch.trim() && setPkgDropdownOpen(true)}
+                  onBlur={() => setTimeout(() => setPkgDropdownOpen(false), 150)}
+                  placeholder="Add a package... (e.g. tmux, ripgrep, jq)"
+                  className="w-full rounded-lg border border-dashed border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                />
+                {pkgDropdownOpen && pkgSuggestions.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden">
+                    {pkgSuggestions.map((tool) => (
+                      <button
+                        key={tool.command}
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => addDependency(tool)}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-zinc-800 transition-colors"
+                      >
+                        <span className="font-mono font-medium text-zinc-200 w-28">
+                          {tool.command}
+                        </span>
+                        <span className="text-xs text-zinc-500 truncate flex-1">
+                          brew: {tool.brew} · apt: {tool.apt}
+                        </span>
+                        <svg className="h-4 w-4 shrink-0 text-zinc-600" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {pkgDropdownOpen && pkgSearch.trim().length > 0 && pkgSuggestions.length === 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl px-4 py-3 text-sm text-zinc-500">
+                    No matching packages found
                   </div>
                 )}
               </div>

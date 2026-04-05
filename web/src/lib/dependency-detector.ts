@@ -9,14 +9,14 @@ export interface DetectedDependency {
   enabled: boolean;
 }
 
-interface ToolDefinition {
+export interface ToolDefinition {
   command: string;
   brew: string;
   apt: string;
   aliases?: string[];
 }
 
-const KNOWN_TOOLS: ToolDefinition[] = [
+export const KNOWN_TOOLS: ToolDefinition[] = [
   // Search & filter
   { command: "fzf", brew: "fzf", apt: "fzf" },
   { command: "rg", brew: "ripgrep", apt: "ripgrep", aliases: ["ripgrep"] },

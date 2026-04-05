@@ -37,6 +37,7 @@ const INITIAL_STATE: WizardState = {
 
 export default function App() {
   const [step, setStep] = useState<Step>(1);
+  const [maxVisited, setMaxVisited] = useState<Step>(1);
   const [state, setState] = useState<WizardState>(INITIAL_STATE);
 
   const updateState = useCallback(
@@ -45,7 +46,10 @@ export default function App() {
     [],
   );
 
-  const goTo = useCallback((s: Step) => setStep(s), []);
+  const goTo = useCallback((s: Step) => {
+    setStep(s);
+    setMaxVisited((prev) => Math.max(prev, s) as Step);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -85,7 +89,7 @@ export default function App() {
 
       <main className="flex-1 px-6 py-10">
         <div className="mx-auto max-w-5xl">
-          <StepIndicator current={step} />
+          <StepIndicator current={step} maxVisited={maxVisited} goTo={goTo} />
 
           <div className="mt-8">
             {step === 1 && (
