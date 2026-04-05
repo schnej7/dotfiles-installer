@@ -4,6 +4,7 @@ set -euo pipefail
 MANIFEST_FILE=".dotfiles-manifest.json"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 VERSION="1.0.0"
+DEFAULT_CLONE_DIR="$HOME/.dotfiles"
 
 # --- Color helpers --------------------------------------------------------- #
 
@@ -257,9 +258,27 @@ install_dependency() {
 
   info "Installing $(bold "$name") via $PKG_MANAGER..."
   case "$PKG_MANAGER" in
-    brew) brew install "$pkg" ;;
-    apt)  sudo apt-get install -y "$pkg" ;;
-    *)    warn "No supported package manager found, skipping $(bold "$name")" ; return 0 ;;
+    brew)
+      brew install "$pkg" || {
+        warn "Failed to install $(bold "$name") via brew"
+        return 0
+      }
+      ;;
+    apt)
+      if sudo -n true 2>/dev/null; then
+        sudo apt-get install -y "$pkg" || {
+          warn "Failed to install $(bold "$name") via apt"
+          return 0
+        }
+      else
+        warn "Skipping $(bold "$name") — sudo access required for apt. Install manually: sudo apt install $pkg"
+        return 0
+      fi
+      ;;
+    *)
+      warn "No supported package manager found, skipping $(bold "$name")"
+      return 0
+      ;;
   esac
   ok "Installed $(bold "$name")"
 }
@@ -345,6 +364,7 @@ Arguments:
   <owner/repo>     GitHub repository slug (e.g. user/dotfiles)
 
 Options:
+  --dir <path>     Clone destination (default: ~/.dotfiles)
   --yes            Skip confirmation prompt
   --dry-run        Preview actions without executing
   --no-deps        Skip dependency installation
@@ -357,6 +377,7 @@ USAGE
 
 REPO_SLUG=""
 REPO_DIR=""
+CLONE_DIR=""
 AUTO_YES=false
 DRY_RUN=false
 INSTALL_DEPS=true
@@ -365,6 +386,7 @@ GIT_REF=""
 parse_args() {
   while [ $# -gt 0 ]; do
     case "$1" in
+      --dir)      shift; CLONE_DIR="$1" ;;
       --yes)      AUTO_YES=true ;;
       --dry-run)  DRY_RUN=true ;;
       --no-deps)  INSTALL_DEPS=false ;;
@@ -413,26 +435,37 @@ main() {
     exit 1
   fi
 
-  # Clone the repository
-  REPO_DIR="$(mktemp -d)"
-  trap 'rm -rf "$REPO_DIR"' EXIT
+  # Determine permanent clone directory
+  if [ -z "$CLONE_DIR" ]; then
+    CLONE_DIR="$DEFAULT_CLONE_DIR"
+  fi
 
   local repo_url="https://github.com/$REPO_SLUG.git"
   local clone_ref="${GIT_REF:-}"
 
-  info "Cloning $(bold "$REPO_SLUG")..."
-  if [ -n "$clone_ref" ]; then
-    git clone --depth 1 --branch "$clone_ref" "$repo_url" "$REPO_DIR" 2>/dev/null || {
-      err "Failed to clone $repo_url (ref: $clone_ref)"
-      exit 1
+  if [ -d "$CLONE_DIR/.git" ]; then
+    info "Repository already exists at $(cyan "$CLONE_DIR"), pulling latest..."
+    REPO_DIR="$CLONE_DIR"
+    git -C "$REPO_DIR" pull --ff-only 2>/dev/null || {
+      warn "Pull failed — using existing checkout"
     }
+    ok "Using existing repository at $(cyan "$CLONE_DIR")"
   else
-    git clone --depth 1 "$repo_url" "$REPO_DIR" 2>/dev/null || {
-      err "Failed to clone $repo_url"
-      exit 1
-    }
+    info "Cloning $(bold "$REPO_SLUG") → $(cyan "$CLONE_DIR")..."
+    if [ -n "$clone_ref" ]; then
+      git clone --branch "$clone_ref" "$repo_url" "$CLONE_DIR" 2>/dev/null || {
+        err "Failed to clone $repo_url (ref: $clone_ref)"
+        exit 1
+      }
+    else
+      git clone "$repo_url" "$CLONE_DIR" 2>/dev/null || {
+        err "Failed to clone $repo_url"
+        exit 1
+      }
+    fi
+    REPO_DIR="$CLONE_DIR"
+    ok "Cloned to $(cyan "$CLONE_DIR")"
   fi
-  ok "Cloned to temporary directory"
 
   # Find and validate manifest
   local manifest="$REPO_DIR/$MANIFEST_FILE"
@@ -577,6 +610,7 @@ main() {
   # Report
   printf "\n"
   ok "$(bold "Installation complete!")"
+  info "Dotfiles repository: $(cyan "$REPO_DIR")"
   if [ -d "$BACKUP_DIR" ]; then
     info "Backups saved to $(cyan "$BACKUP_DIR")"
   fi
