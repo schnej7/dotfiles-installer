@@ -440,7 +440,8 @@ main() {
     CLONE_DIR="$DEFAULT_CLONE_DIR"
   fi
 
-  local repo_url="https://github.com/$REPO_SLUG.git"
+  local ssh_url="git@github.com:$REPO_SLUG.git"
+  local https_url="https://github.com/$REPO_SLUG.git"
   local clone_ref="${GIT_REF:-}"
 
   if [ -d "$CLONE_DIR/.git" ]; then
@@ -452,16 +453,29 @@ main() {
     ok "Using existing repository at $(cyan "$CLONE_DIR")"
   else
     info "Cloning $(bold "$REPO_SLUG") → $(cyan "$CLONE_DIR")..."
-    if [ -n "$clone_ref" ]; then
-      git clone --branch "$clone_ref" "$repo_url" "$CLONE_DIR" 2>/dev/null || {
-        err "Failed to clone $repo_url (ref: $clone_ref)"
-        exit 1
-      }
-    else
-      git clone "$repo_url" "$CLONE_DIR" 2>/dev/null || {
-        err "Failed to clone $repo_url"
-        exit 1
-      }
+    local cloned=false
+    # Try SSH first (works if user has keys configured)
+    if ssh -o BatchMode=yes -o ConnectTimeout=5 -T git@github.com 2>&1 | grep -qi "successfully authenticated"; then
+      info "SSH access detected, cloning via SSH..."
+      if [ -n "$clone_ref" ]; then
+        git clone --branch "$clone_ref" "$ssh_url" "$CLONE_DIR" 2>/dev/null && cloned=true
+      else
+        git clone "$ssh_url" "$CLONE_DIR" 2>/dev/null && cloned=true
+      fi
+    fi
+    # Fall back to HTTPS
+    if [ "$cloned" = false ]; then
+      if [ -n "$clone_ref" ]; then
+        git clone --branch "$clone_ref" "$https_url" "$CLONE_DIR" 2>/dev/null || {
+          err "Failed to clone $REPO_SLUG"
+          exit 1
+        }
+      else
+        git clone "$https_url" "$CLONE_DIR" 2>/dev/null || {
+          err "Failed to clone $REPO_SLUG"
+          exit 1
+        }
+      fi
     fi
     REPO_DIR="$CLONE_DIR"
     ok "Cloned to $(cyan "$CLONE_DIR")"
