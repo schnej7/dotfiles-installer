@@ -162,35 +162,33 @@ export default function ManifestExport({ state, update, goTo }: Props) {
           </div>
         ) : (
           <>
-            {!state.githubToken && (
-              <div className="mb-4 space-y-2">
+            <div className="mb-4 space-y-2">
+              <div className="flex items-center justify-between">
                 <label className="text-sm text-zinc-400">
                   GitHub personal access token with{" "}
                   <code className="text-zinc-300">repo</code> scope
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={tokenInput}
-                    onChange={(e) => setTokenInput(e.target.value)}
-                    placeholder="ghp_..."
-                    className="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
-                  />
-                  <a
-                    href="https://github.com/settings/tokens/new?scopes=repo&description=dotfiles-installer"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-                  >
-                    Create token
-                  </a>
-                </div>
-                <p className="text-xs text-zinc-600">
-                  Used only in your browser to create a PR. Never stored or sent
-                  to any server.
-                </p>
+                <a
+                  href="https://github.com/settings/tokens/new?scopes=repo&description=dotfiles-installer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-brand-400 hover:text-brand-300 underline"
+                >
+                  Generate token
+                </a>
               </div>
-            )}
+              <input
+                type="password"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="ghp_..."
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+              />
+              <p className="text-xs text-zinc-600">
+                Used only in your browser to create a PR. Never stored or sent
+                to any server.
+              </p>
+            </div>
 
             {prError && (
               <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">

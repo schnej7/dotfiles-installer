@@ -15,7 +15,6 @@ export default function RepoInput({ state, update, goTo }: Props) {
       ? `https://github.com/${state.owner}/${state.repo}`
       : "",
   );
-  const [token, setToken] = useState(state.githubToken);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +32,12 @@ export default function RepoInput({ state, update, goTo }: Props) {
 
     setLoading(true);
     try {
-      const result = await fetchRepo(parsed.owner, parsed.repo, token || undefined);
+      const result = await fetchRepo(parsed.owner, parsed.repo);
       update({
         owner: parsed.owner,
         repo: parsed.repo,
         repoMeta: result.repo,
         rateLimit: result.rateLimit,
-        githubToken: token,
       });
       goTo(2);
     } catch (err) {
@@ -88,36 +86,6 @@ export default function RepoInput({ state, update, goTo }: Props) {
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-brand-400" />
             </div>
           )}
-        </div>
-
-        {/* GitHub token (optional, for PR creation) */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-zinc-400">
-              GitHub token
-              <span className="ml-1.5 text-xs text-zinc-600">(optional — enables opening a PR)</span>
-            </label>
-            <a
-              href="https://github.com/settings/tokens/new?scopes=repo&description=dotfiles-installer"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-brand-400 hover:text-brand-300 underline"
-            >
-              Generate token
-            </a>
-          </div>
-          <input
-            type="password"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            placeholder="ghp_..."
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
-            disabled={loading}
-          />
-          <p className="text-xs text-zinc-600">
-            Needs <code className="text-zinc-500">repo</code> scope.
-            Used only in your browser — never stored or sent to any server.
-          </p>
         </div>
 
         {error && (
