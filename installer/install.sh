@@ -471,7 +471,7 @@ main() {
   # Confirm
   if [ "$AUTO_YES" = false ]; then
     printf "  Proceed with installation? [y/N] "
-    read -r answer
+    read -r answer </dev/tty
     case "$answer" in
       y|Y|yes|Yes) ;;
       *) info "Installation cancelled."; exit 0 ;;
