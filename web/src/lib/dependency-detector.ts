@@ -17,57 +17,105 @@ interface ToolDefinition {
 }
 
 const KNOWN_TOOLS: ToolDefinition[] = [
+  // Search & filter
   { command: "fzf", brew: "fzf", apt: "fzf" },
   { command: "rg", brew: "ripgrep", apt: "ripgrep", aliases: ["ripgrep"] },
   { command: "fd", brew: "fd", apt: "fd-find", aliases: ["fdfind"] },
+  { command: "ag", brew: "the_silver_searcher", apt: "silversearcher-ag", aliases: ["the_silver_searcher"] },
+  { command: "ack", brew: "ack", apt: "ack" },
+  { command: "sd", brew: "sd", apt: "sd" },
+
+  // Modern CLI replacements
   { command: "bat", brew: "bat", apt: "bat", aliases: ["batcat"] },
   { command: "eza", brew: "eza", apt: "eza", aliases: ["exa"] },
+  { command: "lsd", brew: "lsd", apt: "lsd" },
+  { command: "dust", brew: "dust", apt: "du-dust" },
+  { command: "duf", brew: "duf", apt: "duf" },
+  { command: "procs", brew: "procs", apt: "procs" },
+
+  // JSON / data tools
   { command: "jq", brew: "jq", apt: "jq" },
   { command: "yq", brew: "yq", apt: "yq" },
+
+  // Terminal multiplexers
   { command: "tmux", brew: "tmux", apt: "tmux" },
+  { command: "screen", brew: "screen", apt: "screen" },
+  { command: "zellij", brew: "zellij", apt: "zellij" },
+
+  // Shell enhancements
   { command: "zoxide", brew: "zoxide", apt: "zoxide" },
   { command: "starship", brew: "starship", apt: "starship" },
+  { command: "direnv", brew: "direnv", apt: "direnv" },
+  { command: "thefuck", brew: "thefuck", apt: "thefuck" },
+
+  // Git tools
   { command: "delta", brew: "git-delta", apt: "git-delta" },
   { command: "lazygit", brew: "lazygit", apt: "lazygit" },
+  { command: "gh", brew: "gh", apt: "gh" },
+
+  // System monitoring
   { command: "htop", brew: "htop", apt: "htop" },
   { command: "btop", brew: "btop", apt: "btop" },
   { command: "neofetch", brew: "neofetch", apt: "neofetch" },
   { command: "fastfetch", brew: "fastfetch", apt: "fastfetch" },
-  { command: "tree", brew: "tree", apt: "tree" },
-  { command: "wget", brew: "wget", apt: "wget" },
-  { command: "curl", brew: "curl", apt: "curl" },
-  { command: "nvim", brew: "neovim", apt: "neovim", aliases: ["neovim"] },
-  { command: "vim", brew: "vim", apt: "vim" },
-  { command: "git", brew: "git", apt: "git" },
-  { command: "gh", brew: "gh", apt: "gh" },
-  { command: "stow", brew: "stow", apt: "stow" },
-  { command: "direnv", brew: "direnv", apt: "direnv" },
-  { command: "zsh", brew: "zsh", apt: "zsh" },
-  { command: "fish", brew: "fish", apt: "fish" },
-  { command: "lsd", brew: "lsd", apt: "lsd" },
-  { command: "tldr", brew: "tldr", apt: "tldr" },
-  { command: "thefuck", brew: "thefuck", apt: "thefuck" },
+
+  // File managers
   { command: "nnn", brew: "nnn", apt: "nnn" },
   { command: "ranger", brew: "ranger", apt: "ranger" },
   { command: "yazi", brew: "yazi", apt: "yazi" },
-  { command: "trash", brew: "trash-cli", apt: "trash-cli", aliases: ["trash-put"] },
-  { command: "ag", brew: "the_silver_searcher", apt: "silversearcher-ag", aliases: ["the_silver_searcher"] },
-  { command: "sd", brew: "sd", apt: "sd" },
-  { command: "procs", brew: "procs", apt: "procs" },
-  { command: "dust", brew: "dust", apt: "du-dust" },
-  { command: "duf", brew: "duf", apt: "duf" },
-  { command: "tokei", brew: "tokei", apt: "tokei" },
-  { command: "hyperfine", brew: "hyperfine", apt: "hyperfine" },
-  { command: "glow", brew: "glow", apt: "glow" },
-  { command: "dog", brew: "dog", apt: "dog" },
+
+  // Containers & orchestration
+  { command: "docker", brew: "docker", apt: "docker.io", aliases: ["docker-compose"] },
+  { command: "kubectl", brew: "kubectl", apt: "kubectl" },
+  { command: "terraform", brew: "terraform", apt: "terraform" },
+  { command: "ansible", brew: "ansible", apt: "ansible" },
+
+  // Cloud CLIs
+  { command: "aws", brew: "awscli", apt: "awscli", aliases: ["awscli"] },
+
+  // Networking & HTTP
   { command: "httpie", brew: "httpie", apt: "httpie", aliases: ["http", "https"] },
   { command: "xh", brew: "xh", apt: "xh" },
-  { command: "zellij", brew: "zellij", apt: "zellij" },
+  { command: "dog", brew: "dog", apt: "dog" },
+  { command: "wget", brew: "wget", apt: "wget" },
+  { command: "curl", brew: "curl", apt: "curl" },
+
+  // System utilities
+  { command: "tree", brew: "tree", apt: "tree" },
+  { command: "lsof", brew: "lsof", apt: "lsof" },
+  { command: "trash", brew: "trash-cli", apt: "trash-cli", aliases: ["trash-put"] },
+  { command: "shellcheck", brew: "shellcheck", apt: "shellcheck" },
+
+  // Editors & shells
+  { command: "nvim", brew: "neovim", apt: "neovim", aliases: ["neovim"] },
+  { command: "vim", brew: "vim", apt: "vim" },
+  { command: "zsh", brew: "zsh", apt: "zsh" },
+  { command: "fish", brew: "fish", apt: "fish" },
+  { command: "git", brew: "git", apt: "git" },
+
+  // Build tools & compilers
+  { command: "make", brew: "make", apt: "make" },
+  { command: "cmake", brew: "cmake", apt: "cmake" },
+  { command: "gcc", brew: "gcc", apt: "gcc" },
+
+  // Language runtimes & version managers
+  { command: "node", brew: "node", apt: "nodejs", aliases: ["nodejs"] },
+  { command: "python3", brew: "python@3", apt: "python3", aliases: ["python"] },
+  { command: "ruby", brew: "ruby", apt: "ruby" },
   { command: "nvm", brew: "nvm", apt: "nvm" },
   { command: "pyenv", brew: "pyenv", apt: "pyenv" },
   { command: "rbenv", brew: "rbenv", apt: "rbenv" },
   { command: "mise", brew: "mise", apt: "mise" },
   { command: "fnm", brew: "fnm", apt: "fnm" },
+
+  // Docs & media
+  { command: "glow", brew: "glow", apt: "glow" },
+  { command: "tokei", brew: "tokei", apt: "tokei" },
+  { command: "hyperfine", brew: "hyperfine", apt: "hyperfine" },
+  { command: "tldr", brew: "tldr", apt: "tldr" },
+  { command: "ffmpeg", brew: "ffmpeg", apt: "ffmpeg" },
+  { command: "pandoc", brew: "pandoc", apt: "pandoc" },
+  { command: "stow", brew: "stow", apt: "stow" },
 ];
 
 const UBIQUITOUS = new Set(["git", "curl", "wget", "vim", "zsh"]);
@@ -92,49 +140,54 @@ function scanContent(content: string, filePath: string): Match[] {
     for (const name of names) {
       if (seen.has(tool.command)) break;
 
-      const patterns = [
-        new RegExp(`\\b${escapeRegex(name)}\\b`, "g"),
+      const esc = escapeRegex(name);
+
+      // Primary detection: word-boundary match
+      if (!new RegExp(`\\b${esc}\\b`).test(content)) {
+        // Fallback: check for TOOL_* environment variable pattern (e.g. FZF_DEFAULT_OPTS)
+        if (name.length >= 3 && new RegExp(`\\b${escapeRegex(name.toUpperCase())}_\\w+`).test(content)) {
+          // env-var reference only — medium confidence
+        } else {
+          continue;
+        }
+      }
+
+      seen.add(tool.command);
+
+      let confidence: Confidence = "medium";
+      let evidence = `Referenced in ${filePath}`;
+
+      const highPatterns = [
+        new RegExp(`eval\\s+"?\\$\\(${esc}`),
+        new RegExp(`alias\\s+\\w+=['"]?${esc}`),
+        new RegExp(`^\\s*${esc}\\s`, "m"),
+        new RegExp(`command\\s+-v\\s+${esc}`),
+        new RegExp(`which\\s+${esc}`),
+        new RegExp(`\\|\\s*${esc}(?:\\s|$)`, "m"),
+        new RegExp(`\\$\\(${esc}\\s`),
+        new RegExp(`type\\s+(?:-[tpPa]\\s+)?${esc}\\b`),
       ];
 
-      for (const pattern of patterns) {
-        const m = content.match(pattern);
-        if (!m) continue;
-
-        seen.add(tool.command);
-
-        let confidence: Confidence = "medium";
-        let evidence = `Referenced in ${filePath}`;
-
-        // High confidence: appears in eval, alias, direct invocation, or plugin load
-        const highPatterns = [
-          new RegExp(`eval\\s+"?\\$\\(${escapeRegex(name)}`, "g"),
-          new RegExp(`alias\\s+\\w+=['"]?${escapeRegex(name)}`, "g"),
-          new RegExp(`^\\s*${escapeRegex(name)}\\s`, "gm"),
-          new RegExp(`command\\s+-v\\s+${escapeRegex(name)}`, "g"),
-          new RegExp(`which\\s+${escapeRegex(name)}`, "g"),
-        ];
-
-        for (const hp of highPatterns) {
-          if (hp.test(content)) {
-            confidence = "high";
-            const matchLine = content
-              .split("\n")
-              .find((l) => hp.test(l))
-              ?.trim();
-            if (matchLine) {
-              evidence = `${filePath}: \`${matchLine.slice(0, 80)}\``;
-            }
-            break;
+      for (const hp of highPatterns) {
+        if (hp.test(content)) {
+          confidence = "high";
+          const matchLine = content
+            .split("\n")
+            .find((l) => hp.test(l))
+            ?.trim();
+          if (matchLine) {
+            evidence = `${filePath}: \`${matchLine.slice(0, 80)}\``;
           }
+          break;
         }
-
-        if (confidence === "medium" && UBIQUITOUS.has(tool.command)) {
-          confidence = "low";
-        }
-
-        matches.push({ tool, evidence, confidence });
-        break;
       }
+
+      if (confidence === "medium" && UBIQUITOUS.has(tool.command)) {
+        confidence = "low";
+      }
+
+      matches.push({ tool, evidence, confidence });
+      break;
     }
   }
 
